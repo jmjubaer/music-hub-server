@@ -26,6 +26,7 @@ async function run() {
     // await client.connect();
     const classCollection = client.db('Music-hub').collection('class');
     const userCollection = client.db('Music-hub').collection('user');
+    const enrolledCollection = client.db('Music-hub').collection('enrolled');
 
 
 
@@ -43,7 +44,27 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/user',async(req,res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result); 
+    })
 
+    app.post('/user',async(req,res) => {
+      const user = req.body;
+      const query = {email: user.email}
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({message: "User already exists"})
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
+
+    // Enrolled related api
+
+    app.post('/enrolled',async(req, res) => {
+      
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });

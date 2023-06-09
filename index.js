@@ -25,12 +25,27 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     const classCollection = client.db('Music-hub').collection('class');
+    const userCollection = client.db('Music-hub').collection('user');
 
 
 
     // Class related api =================================================
-    app.get('/popularclasses',async(req,res) => {
-      const result = await classCollection.find().sort({enrolled: -1}).limit(6).toArray();
+    app.get('/classes',async(req,res) => {
+      const result = await classCollection.find().sort({enrolled: -1}).toArray();
+      res.send(result);
+    })
+
+    app.get('/git',async(req,res) => {
+      const email = req.query.email;
+      const query = {email: email};
+      const result = await classCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    // user related api =================================================
+    app.get('/instructors',async(req,res) => {
+      const query = {role: "instructor"}
+      const result = await userCollection.find().toArray();
       res.send(result);
     })
 

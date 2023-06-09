@@ -35,17 +35,11 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/git',async(req,res) => {
-      const email = req.query.email;
-      const query = {email: email};
-      const result = await classCollection.find(query).toArray();
-      res.send(result);
-    })
 
     // user related api =================================================
     app.get('/instructors',async(req,res) => {
       const query = {role: "instructor"}
-      const result = await userCollection.find().toArray();
+      const result = await userCollection.find(query).toArray();
       res.send(result);
     })
 

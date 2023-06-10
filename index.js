@@ -50,13 +50,26 @@ async function run() {
       res.send({token});
     })
 
+    // Admin related api 
+    app.get('/allclasses',verifyJWT,async(req,res) => {
+      const email = req.query.email;
+      if(email){
+        if(req.decoded.email === email){
+          const result = await classCollection.find().sort({timeStamp: -1}).toArray();
+          res.send(result);
+        }else{
+          res.status(403).send({message: "forbidden access"})
+        }
+      }else{
+        res.send([])
+      }
+    })
 
     // Class related api =================================================
     app.get('/classes',async(req,res) => {
       const result = await classCollection.find().sort({enrolled: -1}).toArray();
       res.send(result);
     })
-
 
     // user related api =================================================
     app.get('/instructors',async(req,res) => {
@@ -82,9 +95,28 @@ async function run() {
     })
 
     // Enrolled related api
+
     app.get('/selectedclass',verifyJWT, async(req, res) => {
-      const query = {status: "pending"};
-      const result = await enrolledCollection.find(query).toArray();
+      const email = req.query.email;
+      if (email) {
+        const decodedEmail = req.decoded.email;
+        if(decodedEmail == email) {
+          const query = {status: "pending"};
+          const result = await enrolledCollection.find(query).toArray();
+          res.send(result);
+        }else{
+          res.status(403).send({message: "forbidden access"})
+        }
+
+    }else{
+      res.send([])
+    }
+    })   
+
+    app.delete('/selectedclass/:id',verifyJWT, async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await enrolledCollection.deleteOne(query);
       res.send(result);
     })
 

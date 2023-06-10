@@ -13,7 +13,7 @@ const verifyJWT = (req, res, next) => {
     return res.status(401).send({ message: "Unauthorize access"})
   }
   const token = authorization.split(' ')[1];
-  jwt.verify(token,process.env.ACCESS_TOKEN,(err,decoded) =>{
+  jwt.verify(token,process.env.VITE_TOKEN,(err,decoded) =>{
     if(err){
       return res.status(403).send({ message: "Forbidden access"})
     }else{

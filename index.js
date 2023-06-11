@@ -105,7 +105,18 @@ async function run() {
         }
       }
       const id = req.params.id;
-      console.log(id);
+      const query = {_id: new ObjectId(id)};
+      const option = {upsert: true};
+      const result = await userCollection.updateOne(query,updatedDoc,option)
+      res.send(result);
+    })
+    app.put('/makeInstructor/:id',verifyJWT,async(req,res) => {
+      const updatedDoc = {
+        $set: {
+          role: "instructor"
+        }
+      }
+      const id = req.params.id;
       const query = {_id: new ObjectId(id)};
       const option = {upsert: true};
       const result = await userCollection.updateOne(query,updatedDoc,option)

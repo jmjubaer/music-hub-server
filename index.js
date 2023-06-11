@@ -43,12 +43,22 @@ async function run() {
     const userCollection = client.db('Music-hub').collection('user');
     const enrolledCollection = client.db('Music-hub').collection('enrolled');
 
-    //JWT related API
+    //Verify related API
     app.post('/jwt',async(req,res) =>{
       const user = req.body;
       const token = jwt.sign(user,process.env.VITE_TOKEN,{expiresIn: '1h'})
       res.send({token});
     })
+
+    const verifyAdmin = async(req, res, next) => {
+      const email = req.decoded.email;
+      const query = {email: email}
+      const user = await userCollection.findOne(query);
+      if(user?.role !== 'admin'){
+        return res.status(403).send({error: true, message:"forbidden access"})
+      }
+      return next();
+    }
 
     // Admin related api 
     app.get('/allclasses',verifyJWT,async(req,res) => {
@@ -68,7 +78,7 @@ async function run() {
 
     // })
 
-    app.put('/feedback/:id',async(req,res) => {
+    app.put('/feedback/:id',verifyJWT,async(req,res) => {
       const feedback = req.body;
       const updatedDoc = {
         $set: {
@@ -76,11 +86,32 @@ async function run() {
         }
       }
       const id = req.params.id;
+      console.log(id);
       const query = {_id: new ObjectId(id)};
       const option = {upsert: true};
       const result = await classCollection.updateOne(query,updatedDoc,option)
       res.send(result);
     })
+
+    app.get('/allUsers',async(req,res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.put('/makeAdmin/:id',verifyJWT,async(req,res) => {
+      const updatedDoc = {
+        $set: {
+          role: "admin"
+        }
+      }
+      const id = req.params.id;
+      console.log(id);
+      const query = {_id: new ObjectId(id)};
+      const option = {upsert: true};
+      const result = await userCollection.updateOne(query,updatedDoc,option)
+      res.send(result);
+    })
+
 
     // Class related api =================================================
     app.get('/classes',async(req,res) => {
@@ -93,11 +124,6 @@ async function run() {
       const query = {role: "instructor"}
       const result = await userCollection.find(query).toArray();
       res.send(result);
-    })
-
-    app.get('/user',async(req,res) => {
-      const result = await userCollection.find().toArray();
-      res.send(result); 
     })
 
     app.post('/user',async(req,res) => {

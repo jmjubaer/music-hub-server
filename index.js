@@ -64,6 +64,23 @@ async function run() {
         res.send([])
       }
     })
+    // app.put('/approved',async(req,res) => {
+
+    // })
+
+    app.put('/feedback/:id',async(req,res) => {
+      const feedback = req.body;
+      const updatedDoc = {
+        $set: {
+          ...feedback
+        }
+      }
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const option = {upsert: true};
+      const result = await classCollection.updateOne(query,updatedDoc,option)
+      res.send(result);
+    })
 
     // Class related api =================================================
     app.get('/classes',async(req,res) => {

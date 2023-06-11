@@ -61,7 +61,18 @@ async function run() {
     }
 
     // Admin related api 
-    app.get('/allclasses',verifyJWT,async(req,res) => {
+    app.get('/user/admin',verifyJWT, async(req, res) => {
+      const email = req.query.email;
+      const query = {email: email};
+      const user = await userCollection.findOne(query);
+      if(user && user?.role === 'admin') {
+        res.send(true);
+      }else{
+        res.send(false);
+      }
+    })
+
+    app.get('/allclasses',verifyJWT,verifyAdmin,async(req,res) => {
       const email = req.query.email;
       if(email){
         if(req.decoded.email === email){
@@ -75,7 +86,7 @@ async function run() {
       }
     })
 
-    app.put('/approved/:id',verifyJWT,async(req,res) => {
+    app.put('/approved/:id',verifyJWT,verifyAdmin,async(req,res) => {
       const updatedDoc = {
         $set: {
           status: 'approved',
@@ -88,7 +99,7 @@ async function run() {
       res.send(result);
     })
 
-    app.put('/denied/:id',verifyJWT,async(req,res) => {
+    app.put('/denied/:id',verifyJWT,verifyAdmin,async(req,res) => {
       const updatedDoc = {
         $set: {
           status: 'approved',
@@ -101,7 +112,7 @@ async function run() {
       res.send(result);
     })
 
-    app.put('/feedback/:id',verifyJWT,async(req,res) => {
+    app.put('/feedback/:id',verifyJWT,verifyAdmin,async(req,res) => {
       const feedback = req.body;
       const updatedDoc = {
         $set: {
@@ -116,12 +127,12 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/allUsers',verifyJWT,async(req,res) => {
+    app.get('/allUsers',verifyJWT,verifyAdmin,async(req,res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     })
 
-    app.put('/makeAdmin/:id',verifyJWT,async(req,res) => {
+    app.put('/makeAdmin/:id',verifyJWT,verifyAdmin,async(req,res) => {
       const updatedDoc = {
         $set: {
           role: "admin"
@@ -133,7 +144,7 @@ async function run() {
       const result = await userCollection.updateOne(query,updatedDoc,option)
       res.send(result);
     })
-    app.put('/makeInstructor/:id',verifyJWT,async(req,res) => {
+    app.put('/makeInstructor/:id',verifyJWT,verifyAdmin,async(req,res) => {
       const updatedDoc = {
         $set: {
           role: "instructor"

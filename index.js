@@ -59,6 +59,15 @@ async function run() {
       }
       return next();
     }
+    const verifyInstructor = async(req, res, next) => {
+      const email = req.decoded.email;
+      const query = {email: email}
+      const user = await userCollection.findOne(query);
+      if(user?.role === 'instructor'){
+        return next();
+      }
+      return res.status(403).send({error: true, message:"forbidden access"})
+    }
 
     // Admin related api 
     app.get('/user/admin',verifyJWT, async(req, res) => {
@@ -102,7 +111,7 @@ async function run() {
     app.put('/denied/:id',verifyJWT,verifyAdmin,async(req,res) => {
       const updatedDoc = {
         $set: {
-          status: 'approved',
+          status: 'denied',
         }
       }
       const id = req.params.id;
@@ -157,6 +166,32 @@ async function run() {
       res.send(result);
     })
 
+    //Instructor related api
+
+    app.get('/user/instructor/:email',verifyJWT, async (req, res) => {
+      const insEmail = req.params.email;
+      const query = {email: insEmail};
+      const user = await userCollection.findOne(query);
+      if(user && user?.role === 'instructor') {
+        res.send(true);
+      }else{
+        res.send(false);
+      }
+    })
+
+    app.get('/myClasses',verifyJWT,verifyInstructor,async(req, res) => {
+      const email = req.query.email;
+      // console.log(email);
+      const query = { email: email }
+      const result = await classCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    app.post('/addClass',verifyJWT,verifyInstructor,async(req,res) => {
+      const newClass = req.body;
+      const result = await classCollection.insertOne(newClass);
+      res.send(result);
+    })
 
     // Class related api =================================================
     app.get('/classes',async(req,res) => {
@@ -190,7 +225,7 @@ async function run() {
       if (email) {
         const decodedEmail = req.decoded.email;
         if(decodedEmail == email) {
-          const query = {status: "pending"};
+          const query = {status: "pending",email: email};
           const result = await enrolledCollection.find(query).toArray();
           res.send(result);
         }else{

@@ -74,9 +74,32 @@ async function run() {
         res.send([])
       }
     })
-    // app.put('/approved',async(req,res) => {
 
-    // })
+    app.put('/approved/:id',verifyJWT,async(req,res) => {
+      const updatedDoc = {
+        $set: {
+          status: 'approved',
+        }
+      }
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const option = {upsert: true};
+      const result = await classCollection.updateOne(query,updatedDoc,option)
+      res.send(result);
+    })
+
+    app.put('/denied/:id',verifyJWT,async(req,res) => {
+      const updatedDoc = {
+        $set: {
+          status: 'approved',
+        }
+      }
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const option = {upsert: true};
+      const result = await classCollection.updateOne(query,updatedDoc,option)
+      res.send(result);
+    })
 
     app.put('/feedback/:id',verifyJWT,async(req,res) => {
       const feedback = req.body;
@@ -93,7 +116,7 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/allUsers',async(req,res) => {
+    app.get('/allUsers',verifyJWT,async(req,res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     })
@@ -126,7 +149,8 @@ async function run() {
 
     // Class related api =================================================
     app.get('/classes',async(req,res) => {
-      const result = await classCollection.find().sort({enrolled: -1}).toArray();
+      const query = {status : "approved"}
+      const result = await classCollection.find(query).sort({enrolled: -1}).toArray();
       res.send(result);
     })
 

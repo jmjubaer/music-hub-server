@@ -129,7 +129,6 @@ async function run() {
         }
       }
       const id = req.params.id;
-      console.log(id);
       const query = {_id: new ObjectId(id)};
       const option = {upsert: true};
       const result = await classCollection.updateOne(query,updatedDoc,option)
@@ -250,7 +249,7 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/enrolled',async(req, res) => {
+    app.post('/selected',async(req, res) => {
       const classInfo = req.body;
       const query = {
         productId: classInfo.productId,
@@ -262,6 +261,34 @@ async function run() {
         res.send(result);
       }else{
         res.send({selected: true});
+      }
+    })
+    app.put('/enrolled/:id',async(req,res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const option = {upsert: true};
+      const updatedDoc = {
+        $set: {
+          status: 'paid',
+        }
+      }
+      const result = await enrolledCollection.updateOne(query,updatedDoc,option);
+      res.send(result);
+    })
+    app.get('/confirmEnrolled/:id',async(req,res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const product = await classCollection.findOne(filter);
+      const option = {upsert: true};
+      if(product){
+        const quantity = product?.enrolled + 1;
+        const updatedDoc = {
+          $set:{
+            enrolled: quantity
+          }
+        }
+        const result = await classCollection.updateOne(filter,updatedDoc,option);
+        res.send(result);
       }
     })
 

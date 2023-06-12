@@ -249,7 +249,7 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/selected',async(req, res) => {
+    app.post('/selected',verifyJWT,async(req, res) => {
       const classInfo = req.body;
       const query = {
         productId: classInfo.productId,
@@ -263,7 +263,7 @@ async function run() {
         res.send({selected: true});
       }
     })
-    app.put('/enrolled/:id',async(req,res) => {
+    app.put('/enrolled/:id',verifyJWT,async(req,res) => {
       const id = req.params.id;
       const query = {_id: new ObjectId(id)};
       const option = {upsert: true};
@@ -275,13 +275,19 @@ async function run() {
       const result = await enrolledCollection.updateOne(query,updatedDoc,option);
       res.send(result);
     })
-    app.get('/confirmEnrolled/:id',async(req,res) => {
+    app.get('/confirmEnrolled/:id',verifyJWT,async(req,res) => {
       const id = req.params.id;
       const filter = {_id: new ObjectId(id)};
       const product = await classCollection.findOne(filter);
       const option = {upsert: true};
       if(product){
-        const quantity = product?.enrolled + 1;
+        let quantity = 0;
+        if(product?.enrolled){
+          quantity =  product?.enrolled + 1
+        }
+        else{
+          quantity = 1;
+        }
         const updatedDoc = {
           $set:{
             enrolled: quantity
